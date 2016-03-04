@@ -130,6 +130,7 @@ class ViewController: UIViewController,CBCentralManagerDelegate,CBPeripheralDele
                 //Read専用のキャラクタリスティックに限定して読み出す
                 /*現段階でこのRead専用のキャラクタリスティックが読み出せない．
                 Arduino側の設定をしていないからか*/
+                //
                 if characteristic.properties == CBCharacteristicProperties.Read{
                     
                     peripheral.readValueForCharacteristic(characteristic)
