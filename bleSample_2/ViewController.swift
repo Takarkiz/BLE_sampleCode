@@ -59,23 +59,30 @@ class ViewController: UIViewController,CBCentralManagerDelegate,CBPeripheralDele
     BLEデバイスが検出された際に呼び出される.
     */
     func centralManager(central: CBCentralManager,didDiscoverPeripheral peripheral: CBPeripheral,advertisementData: [String:AnyObject],RSSI: NSNumber){
-        print("pheripheral.name: \(peripheral.name)")
-        print("advertisementData:\(advertisementData)")
-        print("RSSI: \(RSSI)")
-        print("peripheral.identifier.UUIDString: \(peripheral.identifier.UUIDString)")
         
-        var name: NSString? = advertisementData["kCBAdvDataLocalName"] as? NSString
-        if (name == nil) {
-            name = "no name";
+        if peripheral.name == "BLESerial2"{
+            
+            print("pheripheral.name: \(peripheral.name)")
+            print("advertisementData:\(advertisementData)")
+            print("RSSI: \(RSSI)")
+            print("peripheral.identifier.UUIDString: \(peripheral.identifier.UUIDString)")
+            
+            var name: NSString? = advertisementData["kCBAdvDataLocalName"] as? NSString
+            if (name == nil) {
+                name = "no name";
+            }
+            
+            self.peripheral = peripheral
+            
+            //peripheral.name はStringっぽいのでこのような条件分岐ができる
+            //ここでは欲しいシリアルのペリフェラルだけを取得
+            
+            //BLEデバイスが検出された時にペリフェラルの接続を開始する
+            self.centralManager.connectPeripheral(self.peripheral, options:nil)
+            
+            
         }
-        
-        self.peripheral = peripheral
-        
-        //BLEデバイスが検出された時にペリフェラルの接続を開始する
-        self.centralManager.connectPeripheral(self.peripheral, options:nil)
-
-        
-     }
+    }
     
     //ペリフェラルの接続が成功すると呼ばれる
     func centralManager(central: CBCentralManager, didConnectPeripheral peripheral: CBPeripheral) {
@@ -115,6 +122,25 @@ class ViewController: UIViewController,CBCentralManagerDelegate,CBPeripheralDele
     func peripheral(peripheral: CBPeripheral, didDiscoverCharacteristicsForService service: CBService, error: NSError?) {
         let characteristics:NSArray = service.characteristics!
         print("\(characteristics.count)個のキャラクタリスティックを発見! \(characteristics)")
+        
+        
+        for obj in characteristics{
+            if let characteristic = obj as? CBCharacteristic{
+                
+                //Read専用のキャラクタリスティックに限定して読み出す
+                /*現段階でこのRead専用のキャラクタリスティックが読み出せない．
+                Arduino側の設定をしていないからか*/
+                if characteristic.properties == CBCharacteristicProperties.Read{
+                    
+                    peripheral.readValueForCharacteristic(characteristic)
+                }
+            }
+        }
+    }
+    
+    //キャラクタリスティックが読み出された時に呼ばれるメソッド
+    func peripheral(peripheral: CBPeripheral, didUpdateValueForCharacteristic characteristic: CBCharacteristic, error: NSError?) {
+        print("読み出し成功! service uuid:\(characteristic.service.UUID), characteristic uuid:\(characteristic.UUID), vallue:\(characteristic.value)")
     }
     
     
