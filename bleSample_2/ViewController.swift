@@ -11,7 +11,9 @@ import UIKit
 
 class ViewController: UIViewController,CBCentralManagerDelegate {
     
-    var myCentralManager:CBCentralManager!
+    var centralManager:CBCentralManager!
+    //ペリフェラルのプロパティ宣言
+    var peripheral:CBPeripheral!
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -34,7 +36,7 @@ class ViewController: UIViewController,CBCentralManagerDelegate {
         case .PoweredOn:
             print("Bluetoothの電源はOn")
             // BLEデバイスの検出を開始.
-            myCentralManager.scanForPeripheralsWithServices(nil, options: nil)
+            centralManager.scanForPeripheralsWithServices(nil, options: nil)
         case .Resetting:
             print("レスティング状態")
         case .Unauthorized:
@@ -60,10 +62,27 @@ class ViewController: UIViewController,CBCentralManagerDelegate {
             name = "no name";
         }
         
+        self.peripheral = peripheral
+        
+        //BLEデバイスが検出された時にペリフェラルの接続を開始する
+        self.centralManager.connectPeripheral(self.peripheral, options:nil)
+
+        
      }
     
+    //ペリフェラルの接続が成功すると呼ばれる
+    func centralManager(central: CBCentralManager, didConnectPeripheral peripheral: CBPeripheral) {
+        print("接続成功!")
+    }
+    //ペリフェラルの接続が失敗すると呼ばれる
+    func centralManager(central: CBCentralManager, didFailToConnectPeripheral peripheral: CBPeripheral, error: NSError?) {
+        print("接続失敗...")
+    }
+    
     @IBAction func scanstart(){
-        myCentralManager = CBCentralManager(delegate:self,queue: nil, options:nil)
+        //CBCentralManagerを初期化する
+        centralManager = CBCentralManager(delegate:self,queue: nil, options:nil)
+        
     }
 
 
