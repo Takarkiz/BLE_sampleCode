@@ -9,7 +9,7 @@
 import CoreBluetooth
 import UIKit
 
-class ViewController: UIViewController,CBCentralManagerDelegate {
+class ViewController: UIViewController,CBCentralManagerDelegate,CBPeripheralDelegate {
     
     var centralManager:CBCentralManager!
     //ペリフェラルのプロパティ宣言
@@ -48,6 +48,13 @@ class ViewController: UIViewController,CBCentralManagerDelegate {
         }
     }
     
+    
+    @IBAction func scanstart(){
+        //CBCentralManagerを初期化する
+        centralManager = CBCentralManager(delegate:self,queue: nil, options:nil)
+        
+    }
+    
     /*
     BLEデバイスが検出された際に呼び出される.
     */
@@ -73,17 +80,44 @@ class ViewController: UIViewController,CBCentralManagerDelegate {
     //ペリフェラルの接続が成功すると呼ばれる
     func centralManager(central: CBCentralManager, didConnectPeripheral peripheral: CBPeripheral) {
         print("接続成功!")
+        
+        /*ペリフェラルの接続が成功時,
+        サービス探索結果を受け取るためにデリゲートをセット*/
+        peripheral.delegate = self
+        
+        //サービス探索開始(nilを渡すことで全てのサービスが探索対象になる)
+        peripheral.discoverServices(nil)
+        print("サービスの探索を開始しました．")
     }
     //ペリフェラルの接続が失敗すると呼ばれる
     func centralManager(central: CBCentralManager, didFailToConnectPeripheral peripheral: CBPeripheral, error: NSError?) {
         print("接続失敗...")
     }
     
-    @IBAction func scanstart(){
-        //CBCentralManagerを初期化する
-        centralManager = CBCentralManager(delegate:self,queue: nil, options:nil)
+    //サービスが見つかった時に呼ばれるメソッド
+    func peripheral(peripheral: CBPeripheral, didDiscoverServices error: NSError?) {
+        
+        let services:NSArray = peripheral.services!
+        print("\(services.count)個のサービスを発見 \(services)")
+        
+        for obj in services{
+            if let service = obj as? CBService{
+                
+                //キャラクタリスティックの探索を開始する
+                peripheral.discoverCharacteristics(nil, forService: service)
+
+            }
+        }
         
     }
+    
+    //キャラクタリスティックが見つかった時に呼ばれるメソッド
+    func peripheral(peripheral: CBPeripheral, didDiscoverCharacteristicsForService service: CBService, error: NSError?) {
+        let characteristics:NSArray = service.characteristics!
+        print("\(characteristics.count)個のキャラクタリスティックを発見! \(characteristics)")
+    }
+    
+    
 
 
 
