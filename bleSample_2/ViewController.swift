@@ -6,10 +6,17 @@
 //  Copyright © 2016年 Takarki. All rights reserved.
 //
 
+
+
 import CoreBluetooth
 import UIKit
 
 class ViewController: UIViewController,CBCentralManagerDelegate,CBPeripheralDelegate {
+    
+    @IBOutlet var label:UILabel!
+    
+    let cbserviceUUID = "BD011F22-7D3C-0DB6-E441-55873D44EF40"
+    let charactaUUID = "2A750D7D-BD9A-928F-B744-7D5A70CEF1F9"
     
     var centralManager:CBCentralManager!
     //ペリフェラルのプロパティ宣言
@@ -29,6 +36,10 @@ class ViewController: UIViewController,CBCentralManagerDelegate,CBPeripheralDele
     
     //CBCentralManagerの状態が変化した時に呼ばれるメソッド
     func centralManagerDidUpdateState(central: CBCentralManager) {
+        
+        //var serviceUUIDs: [CBUUID] = [CBUUID.UUIDWithString(kServiceUUID)]
+        //self.centralManager.scanForPeripheralsWithServices(serviceUUIDs, options: nil)
+
         print("state \(central.state)");
         switch (central.state) {
         case .PoweredOff:
@@ -130,11 +141,10 @@ class ViewController: UIViewController,CBCentralManagerDelegate,CBPeripheralDele
                 //Read専用のキャラクタリスティックに限定して読み出す
                 /*現段階でこのRead専用のキャラクタリスティックが読み出せない．
                 Arduino側の設定をしていないからか*/
-                //
-                if characteristic.properties == CBCharacteristicProperties.Read{
+                //if characteristic.UUID == charactaUUID{
                     
                     peripheral.readValueForCharacteristic(characteristic)
-                }
+                //}
             }
         }
     }
@@ -142,6 +152,21 @@ class ViewController: UIViewController,CBCentralManagerDelegate,CBPeripheralDele
     //キャラクタリスティックが読み出された時に呼ばれるメソッド
     func peripheral(peripheral: CBPeripheral, didUpdateValueForCharacteristic characteristic: CBCharacteristic, error: NSError?) {
         print("読み出し成功! service uuid:\(characteristic.service.UUID), characteristic uuid:\(characteristic.UUID), vallue:\(characteristic.value)")
+        
+//        if characteristic.value != nil{
+//            var val = characteristic.value as! String
+//            label.text = val
+//        }
+        if characteristic.UUID.isEqual(CBUUID(string:"2A750D7D-BD9A-928F-B744-7D5A70CEF1F9")){
+            
+            var byte:CUnsignedChar = 0
+            
+            //1バイト取り出す
+            characteristic.value?.getBytes(&byte, length:1)
+            
+            print(byte)
+            
+        }
     }
     
     
